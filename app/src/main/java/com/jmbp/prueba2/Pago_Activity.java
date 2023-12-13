@@ -1,21 +1,21 @@
 package com.jmbp.prueba2;
 
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
-import android.icu.util.Calendar;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.util.Calendar;
+
 public class Pago_Activity extends AppCompatActivity {
 
     private TextView txtCancelar;
     private Button btnVolver;
-    @RequiresApi(api = Build.VERSION_CODES.N)
+    private double sueldoBasico;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -27,26 +27,24 @@ public class Pago_Activity extends AppCompatActivity {
         Intent intent = getIntent();
         if (intent != null) {
             String cedula = intent.getStringExtra("cedula");
-            String nombre = intent.getStringExtra("nombre");
             String placa = intent.getStringExtra("placa");
             String fbVehiculo = intent.getStringExtra("fbVehiculo");
             String marca = intent.getStringExtra("marca");
-            String color = intent.getStringExtra("color");
             String tipo = intent.getStringExtra("tipo");
             String valor = intent.getStringExtra("valor");
             String multas = intent.getStringExtra("multas");
 
             double sueldoBasico = 435;
-            double importePlacas = calcularImportePlacas(cedula, placa);
-            double multaContaminacion = calcularMultaContaminacion(fbVehiculo);
-            double valorMatriculacion = calcularValorMatriculacion(marca, tipo, valor, sueldoBasico, multas);
+            double importePlacas = (cedula.startsWith("1") && placa.startsWith("I")) ? sueldoBasico * 0.05 : 0;
+            double multaContaminacion = MultaContaminacion(fbVehiculo);
+            double valorMatriculacion = ValorMatriculacion(marca, tipo, valor, sueldoBasico, multas);
 
             double totalPagar = importePlacas + multaContaminacion + valorMatriculacion;
 
-            String resultado = "Importe a cobrar: $" + importePlacas + "\n" +
-                    "Multa de contaminacion: $" + multaContaminacion + "\n" +
-                    "Valorde matricula: $" + valorMatriculacion + "\n" +
-                    "Total : $" + totalPagar;
+            String resultado = "Importe por renovación de placas: $" + importePlacas + "\n" +
+                    "Multa por contaminación: $" + multaContaminacion + "\n" +
+                    "Valor de matriculación: $" + valorMatriculacion + "\n" +
+                    "Total a pagar: $" + totalPagar;
 
             txtCancelar.setText(resultado);
 
@@ -55,59 +53,30 @@ public class Pago_Activity extends AppCompatActivity {
                 public void onClick(View view) {
                     onBackPressed();
                 }
-
-
             });
         }
     }
-            private double calcularImportePlacas(String cedula, String placa) {
 
-                if (cedula.startsWith("1") && placa.startsWith("I")) {
-                    return 0.05 * 435;
-                } else {
-                    return 0;
-                }
-            }
+    private double MultaContaminacion(String fbVehiculo) {
+        int anioFabricacion = Integer.parseInt(fbVehiculo);
+        int anioActual = Calendar.getInstance().get(Calendar.YEAR);
+        int aniosContaminacion = anioActual - anioFabricacion;
 
-            @RequiresApi(api = Build.VERSION_CODES.N)
-            private double calcularMultaContaminacion(String fbVehiculo) {
+        return (aniosContaminacion > 0 && anioFabricacion < 2010) ? sueldoBasico * 0.02 * aniosContaminacion : 0;
+    }
 
-                int anioActual = Calendar.getInstance().get(Calendar.YEAR);
-                int anioFabricacion = Integer.parseInt(fbVehiculo);
-                int aniosContaminacion = anioActual - anioFabricacion;
+    private double ValorMatriculacion(String marca, String tipo, String valor, double sueldoBasico, String multas) {
+        double valorVehiculo = Double.parseDouble(valor);
+        double valorMatriculacion = 0;
 
-                if (aniosContaminacion > 0 && anioFabricacion < 2010) {
-                    return 0.02 * aniosContaminacion;
-                } else {
-                    return 0;
-                }
-            }
-
-            private double calcularValorMatriculacion(String marca, String tipo, String valor, double sueldoBasico, String multas) {
-
-                double valorVehiculo = Double.parseDouble(valor);
-                double valorMatriculacion = 0;
-
-                if (marca.equalsIgnoreCase("Toyota")) {
-                    if (tipo.equalsIgnoreCase("Jeep")) {
-                        valorMatriculacion = valorVehiculo * 0.08;
-                    } else if (tipo.equalsIgnoreCase("Camioneta")) {
-                        valorMatriculacion = valorVehiculo * 0.12;
-                    }
-                } else if (marca.equalsIgnoreCase("Suzuki")) {
-                    if (tipo.equalsIgnoreCase("Vitara")) {
-                        valorMatriculacion = valorVehiculo * 0.10;
-                    } else if (tipo.equalsIgnoreCase("Automóvil")) {
-                        valorMatriculacion = valorVehiculo * 0.09;
-                    }
-                }
-
-                if (multas.equalsIgnoreCase("si")) {
-                    return valorMatriculacion * 0.25;
-                } else {
-                    return valorMatriculacion;
-                }
-            }
-
+        if (marca.equalsIgnoreCase("Toyota")) {
+            valorMatriculacion = (tipo.equalsIgnoreCase("Jeep")) ? valorVehiculo * 0.08 :
+                    (tipo.equalsIgnoreCase("Camioneta")) ? valorVehiculo * 0.12 : 0;
+        } else if (marca.equalsIgnoreCase("Suzuki")) {
+            valorMatriculacion = (tipo.equalsIgnoreCase("Vitara")) ? valorVehiculo * 0.10 :
+                    (tipo.equalsIgnoreCase("Automóvil")) ? valorVehiculo * 0.09 : 0;
         }
 
+        return (multas.equalsIgnoreCase("si")) ? valorMatriculacion + sueldoBasico * 0.25 : valorMatriculacion;
+    }
+}
