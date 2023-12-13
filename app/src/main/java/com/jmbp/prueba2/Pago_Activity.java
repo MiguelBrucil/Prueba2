@@ -43,10 +43,10 @@ public class Pago_Activity extends AppCompatActivity {
 
             double totalPagar = importePlacas + multaContaminacion + valorMatriculacion;
 
-            String resultado = "Importe por renovación de placas: $" + importePlacas + "\n" +
-                    "Multa por contaminación: $" + multaContaminacion + "\n" +
-                    "Valor de matriculación: $" + valorMatriculacion + "\n" +
-                    "Total a pagar: $" + totalPagar;
+            String resultado = "Importe a cobrar: $" + importePlacas + "\n" +
+                    "Multa de contaminacion: $" + multaContaminacion + "\n" +
+                    "Valorde matricula: $" + valorMatriculacion + "\n" +
+                    "Total : $" + totalPagar;
 
             txtCancelar.setText(resultado);
 
